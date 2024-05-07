@@ -24,7 +24,7 @@ class RefrigeratorThing(Thing):
         self.refrigerator = refrigerator
         self.refrigerator.set_listener(self.on_value_changed)
 
-        self.is_on = Value(self.refrigerator.is_on())
+        self.is_on = Value(self.refrigerator.is_on(), self.refrigerator.set_on)
         self.add_property(
             Property(self,
                      'on',
@@ -33,7 +33,7 @@ class RefrigeratorThing(Thing):
                          'title': 'on',
                          "type": "boolean",
                          'description': 'true, if on)',
-                         'readOnly': True,
+                         'readOnly': False,
                      }))
 
         self.last_activation_time = Value(refrigerator.last_activation_time.strftime("%Y-%m-%dT%H:%M:%S"))

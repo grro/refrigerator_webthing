@@ -58,7 +58,7 @@ class Refrigerator:
         self.__listener = lambda: None    # "empty" listener
         self.__shelly = Shelly1(addr)
         self.__is_on = False
-        self.__cooling_secs_per_day = SimpleDB("refrigerator_" + str(id), sync_period_sec=60, directory=directory)
+        self.__cooling_secs_per_day = SimpleDB("refrigerator", sync_period_sec=60, directory=directory)
         self.last_activation_time = datetime.now()
         self.last_deactivation_time = datetime.now()
         self.__sync()
@@ -81,7 +81,7 @@ class Refrigerator:
             if self.__is_on is False:
                 self.__shelly.switch(True)
                 self.__is_on = True
-                logging.debug("Refrigerator activated")
+                logging.info("Refrigerator activated")
         else:
             if self.__is_on is True:
                 self.__shelly.switch(False)
@@ -89,7 +89,7 @@ class Refrigerator:
                 cooling_time = (datetime.now() - self.last_activation_time)
                 day = datetime.now().strftime('%j')
                 self.__cooling_secs_per_day.put(day, self.__cooling_secs_per_day.get(day, 0) + cooling_time.total_seconds(), ttl_sec=366*24*60*60)
-                logging.debug(self.__str__() + " deactivated (heating time " + duration(cooling_time.total_seconds(), 1) + ")")
+                logging.info("Refrigerator deactivated (heating time " + duration(cooling_time.total_seconds(), 1) + ")")
         self.__sync()
 
 
