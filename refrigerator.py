@@ -58,6 +58,7 @@ class Refrigerator:
         self.__listener = lambda: None    # "empty" listener
         self.__shelly = Shelly1(addr)
         self.__is_on = False
+        self.__power = 0
         self.__cooling_secs_per_day = SimpleDB("refrigerator", sync_period_sec=60, directory=directory)
         self.last_activation_time = datetime.now()
         self.last_deactivation_time = datetime.now()
@@ -71,6 +72,10 @@ class Refrigerator:
 
     def stop(self):
         self.__is_running = False
+
+    @property
+    def power(self) -> int:
+        return self.__power
 
     def is_on(self) -> bool:
         return self.__is_on
@@ -101,7 +106,6 @@ class Refrigerator:
             if old_on is True:
                 self.last_deactivation_time = datetime.now()
 
-
     def cooling_secs_per_day(self, day_of_year: int) -> Optional[int]:
         secs = self.__cooling_secs_per_day.get(str(day_of_year), -1)
         if secs > 0:
@@ -121,27 +125,11 @@ class Refrigerator:
         today = int(datetime.now().strftime('%j'))
         return self.__refrigerator_hours_per_day(today)
 
-    def __refrigerator_hours_list_current_year(self) -> List[int]:
-        current_day = int(datetime.now().strftime('%j'))
-        hours_per_day = [self.__refrigerator_hours_per_day(day_of_year) for day_of_year in range(0, current_day + 1)]
-        return [hours for hours in hours_per_day if hours is not None]
-
-    @property
-    def refrigerator_hours_current_year(self) -> int:
-        return sum(self.__refrigerator_hours_list_current_year())
-
-    @property
-    def refrigerator_hours_estimated_year(self) -> int:
-        hours_per_day = self.__refrigerator_hours_list_current_year()
-        if len(hours_per_day) > 0:
-            return int(sum(hours_per_day) * 365 / len(hours_per_day))
-        else:
-            return 0
-
     def __sync(self):
         is_on, power, counters = self.__shelly.query()
         self.__update_last_activity(self.is_on(), is_on)
         self.__is_on = is_on
+        self.__power = power
         self.__listener()
 
     def __measure(self):
@@ -150,4 +138,4 @@ class Refrigerator:
                 self.__sync()
             except Exception as e:
                 logging.warning("error occurred on sync " + str(e))
-            sleep(5)
+            sleep(3.3)

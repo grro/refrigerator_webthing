@@ -36,6 +36,18 @@ class RefrigeratorThing(Thing):
                          'readOnly': False,
                      }))
 
+        self.power = Value(self.refrigerator.is_on(), self.refrigerator.power)
+        self.add_property(
+            Property(self,
+                     'power',
+                     self.power,
+                     metadata={
+                         'title': 'power',
+                         "type": "integer",
+                         'description': 'the current power consumption)',
+                         'readOnly': True,
+                     }))
+
         self.last_activation_time = Value(refrigerator.last_activation_time.strftime("%Y-%m-%dT%H:%M:%S"))
         self.add_property(
             Property(self,
@@ -73,30 +85,6 @@ class RefrigeratorThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.refrigerator_hours_current_year = Value(self.refrigerator.refrigerator_hours_current_year)
-        self.add_property(
-            Property(self,
-                     'refrigerator_hours_current_year',
-                     self.refrigerator_hours_current_year,
-                     metadata={
-                         'title': 'refrigerator_hours_current_year',
-                         "type": "integer",
-                         'description': 'hours current year active',
-                         'readOnly': True,
-                     }))
-
-        self.refrigerator_hours_estimated_year = Value(self.refrigerator.refrigerator_hours_estimated_year)
-        self.add_property(
-            Property(self,
-                     'refrigerator_hours_estimated_year',
-                     self.refrigerator_hours_estimated_year,
-                     metadata={
-                         'title': 'refrigerator_hours_estimated_year',
-                         "type": "integer",
-                         'description': 'hours estimated year active',
-                         'readOnly': True,
-                     }))
-
     def on_value_changed(self):
         self.ioloop.add_callback(self._on_value_changed)
 
@@ -105,8 +93,7 @@ class RefrigeratorThing(Thing):
         self.last_activation_time.notify_of_external_update(self.refrigerator.last_activation_time.strftime("%Y-%m-%dT%H:%M:%S"))
         self.last_deactivation_time.notify_of_external_update(self.refrigerator.last_deactivation_time.strftime("%Y-%m-%dT%H:%M:%S"))
         self.refrigerator_hours_today.notify_of_external_update(self.refrigerator.refrigerator_hours_today)
-        self.refrigerator_hours_current_year.notify_of_external_update(self.refrigerator.refrigerator_hours_current_year)
-        self.refrigerator_hours_estimated_year.notify_of_external_update(self.refrigerator.refrigerator_hours_estimated_year)
+        self.power.notify_of_external_update(self.refrigerator.power)
 
 
 def run_server(description: str, port: int, addr: str, directory: str):
