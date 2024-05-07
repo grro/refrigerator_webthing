@@ -76,15 +76,14 @@ class Refrigerator:
         return self.__is_on
 
     def set_on(self, on: bool):
+        self.__update_last_activity(self.is_on(), on)
         if on:
             if self.__is_on is False:
                 self.__shelly.switch(True)
                 self.__is_on = True
-                self.last_activation_time = datetime.now()
                 logging.debug("Refrigerator activated")
         else:
             if self.__is_on is True:
-                self.last_deactivation_time = datetime.now()
                 self.__shelly.switch(False)
                 self.__is_on = False
                 cooling_time = (datetime.now() - self.last_activation_time)
@@ -92,6 +91,16 @@ class Refrigerator:
                 self.__cooling_secs_per_day.put(day, self.__cooling_secs_per_day.get(day, 0) + cooling_time.total_seconds(), ttl_sec=366*24*60*60)
                 logging.debug(self.__str__() + " deactivated (heating time " + duration(cooling_time.total_seconds(), 1) + ")")
         self.__sync()
+
+
+    def __update_last_activity(self, old_on: bool, new_old: bool):
+        if new_old:
+            if old_on is False:
+                self.last_activation_time = datetime.now()
+        else:
+            if old_on is True:
+                self.last_deactivation_time = datetime.now()
+
 
     def cooling_secs_per_day(self, day_of_year: int) -> Optional[int]:
         secs = self.__cooling_secs_per_day.get(str(day_of_year), -1)
@@ -102,7 +111,10 @@ class Refrigerator:
 
     def __refrigerator_hours_per_day(self, day_of_year: int) -> int:
         heater_secs_today = self.__cooling_secs_per_day.get(str(day_of_year))
-        return heater_secs_today / (60*60)
+        if heater_secs_today is None:
+            return 0
+        else:
+            return heater_secs_today / (60*60)
 
     @property
     def refrigerator_hours_today(self) -> int:
@@ -127,7 +139,9 @@ class Refrigerator:
             return 0
 
     def __sync(self):
-        self.__is_on, power, counters = self.__shelly.query()
+        is_on, power, counters = self.__shelly.query()
+        self.__update_last_activity(self.is_on(), is_on)
+        self.__is_on = is_on
         self.__listener()
 
     def __measure(self):
