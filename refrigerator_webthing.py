@@ -36,7 +36,7 @@ class RefrigeratorThing(Thing):
                          'readOnly': False,
                      }))
 
-        self.power = Value(self.refrigerator.is_on(), self.refrigerator.power)
+        self.power = Value(self.refrigerator.power)
         self.add_property(
             Property(self,
                      'power',
