@@ -115,3 +115,9 @@ if __name__ == '__main__':
     logging.getLogger('tornado.access').setLevel(logging.ERROR)
     logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
     run_server("description", int(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4])
+
+
+
+
+# test curl
+# curl -X PUT -d '{"on": true}' http://localhost:8880/properties/on
